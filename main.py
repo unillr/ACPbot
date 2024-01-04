@@ -35,7 +35,7 @@ async def main():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', 8000)
     await site.start()
-    print('Serving on http://127.0.0.1:8000/')
+    print('Serving on http://0.0.0.0:8000/')
 
     extensions = [f[:-3] for f in os.listdir('./commands') if f.endswith('.py')]
     async with bot:

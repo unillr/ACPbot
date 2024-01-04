@@ -18,8 +18,8 @@ class MapSelectMenu(discord.ui.Select):
                          options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        candicates = [m for m in self.maps.keys() if m not in self.values]
-        map_name = random.choice(candicates)
+        candidates = [m for m in self.maps.keys() if m not in self.values]
+        map_name = random.choice(candidates)
         map_image = self.maps[map_name]
 
         embed = discord.Embed(title=map_name)
@@ -37,7 +37,7 @@ class MapSelectMenuView(discord.ui.View):
         self.add_item(MapSelectMenu())
 
 
-@app_commands.command(name='map', description='ランダムにマップを選択')
+@app_commands.command(name='map', description='ランダムにマップを選択するよ!')
 async def random_map(interaction: discord.Interaction):
     await interaction.response.send_message(view=MapSelectMenuView())
 
