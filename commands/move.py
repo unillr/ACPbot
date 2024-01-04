@@ -15,15 +15,19 @@ class MemberSelectMenu(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        error = None
         members = [interaction.guild.get_member(int(id)) for id in self.values]
-        try:
-            for member in members:
+        for member in members:
+            try:
                 await member.move_to(self.move_to)
-        except (discord.Forbidden, discord.HTTPException) as e:
-            await interaction.edit_original_response(content='移動に失敗したよ!', view=None)
-            raise e
-        else:
+            except (discord.Forbidden, discord.HTTPException) as e:
+                error = e
+        if error is None:
             await interaction.edit_original_response(content='VCを移動したよ!', view=None)
+        else:
+            await interaction.edit_original_response(content='移動に失敗したよ!', view=None)
+            raise error
 
 
 class EveryoneButton(discord.ui.Button):
@@ -34,14 +38,18 @@ class EveryoneButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        try:
-            for member in self.move_from.members:
+
+        error = None
+        for member in self.move_from.members:
+            try:
                 await member.move_to(self.move_to)
-        except (discord.Forbidden, discord.HTTPException) as e:
-            await interaction.edit_original_response(content='移動に失敗したよ!', view=None)
-            raise e
-        else:
+            except (discord.Forbidden, discord.HTTPException) as e:
+                error = e
+        if error is None:
             await interaction.edit_original_response(content='VCを移動したよ!', view=None)
+        else:
+            await interaction.edit_original_response(content='移動に失敗したよ!', view=None)
+            raise error
 
 
 class MemberSelectMenuView(discord.ui.View):
@@ -52,7 +60,7 @@ class MemberSelectMenuView(discord.ui.View):
 
 
 @app_commands.command(description='まとめてVCを移動できるよ!')
-@app_commands.guild_only()
+@app_commands.checks.bot_has_permissions(move_members=True)
 async def move(interaction: discord.Interaction):
     if (isinstance(interaction.channel, discord.VoiceChannel)
             and interaction.user.voice is not None):
