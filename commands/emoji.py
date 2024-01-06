@@ -17,22 +17,25 @@ class Fonts(enum.Enum):
     英字 = 'LinLibertine_RBah'
 
 
-@app_commands.command(name='emoji')
-@app_commands.checks.has_permissions(manage_expressions=True)
+@app_commands.command(name='emoji', description='絵文字を生成するよ!')
+@app_commands.checks.cooldown(1, 15, key=None)
 async def generate_emoji(interaction: discord.Interaction,
                          text: str,
-                         color: str,
+                         red: int, green: int, blue: int,
                          font: Fonts):
+    if min(red, green, blue) < 0 or max(red, green, blue) > 255:
+        await interaction.response.send_message('色は0~255の範囲で指定してね!', ephemeral=True)
+        return
     url = URL('https://emoji-gen.ninja/emoji')
     query = {
         'align': 'center',
         'back_color': '00000000',
-        'color': color + 'ff',
+        'color': '{:02x}{:02x}{:02x}ff'.format(red, blue, green),
         'font': font.value,
         'locale': 'ja',
-        'public_fg': str(False),
-        'size_fixed': str(False),
-        'stretch': str(True),
+        'public_fg': 'false',
+        'size_fixed': 'false',
+        'stretch': 'true',
         'text': text.replace('\\n', '\n')
              }
     url_with_query = url.with_query(query)
@@ -45,6 +48,12 @@ async def generate_emoji(interaction: discord.Interaction,
                 return
             data = io.BytesIO(await resp.read())
             await interaction.response.send_message(file=discord.File(data, f'{text}.png'))
+
+
+@generate_emoji.error
+async def on_emoji_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.CommandOnCooldown):
+        await interaction.response.send_message('クールダウン中だよ!', ephemeral=True)
 
 
 async def setup(bot: commands.Bot):
