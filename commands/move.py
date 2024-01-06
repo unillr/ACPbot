@@ -21,7 +21,7 @@ class MemberSelectMenu(discord.ui.Select):
         for member in members:
             try:
                 await member.move_to(self.move_to)
-            except (discord.Forbidden, discord.HTTPException) as e:
+            except discord.HTTPException as e:
                 error = e
         if error is None:
             await interaction.edit_original_response(content='VCを移動したよ!', view=None)
@@ -43,7 +43,7 @@ class EveryoneButton(discord.ui.Button):
         for member in self.move_from.members:
             try:
                 await member.move_to(self.move_to)
-            except (discord.Forbidden, discord.HTTPException) as e:
+            except discord.HTTPException as e:
                 error = e
         if error is None:
             await interaction.edit_original_response(content='VCを移動したよ!', view=None)
