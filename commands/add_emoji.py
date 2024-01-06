@@ -22,8 +22,8 @@ class InputNameModal(discord.ui.Modal):
 
 
 @app_commands.context_menu(name='絵文字としてサーバーに追加')
-@app_commands.checks.has_permissions(create_expressions=True)
-@app_commands.checks.bot_has_permissions(create_expressions=True)
+@app_commands.checks.has_permissions(manage_expressions=True)
+@app_commands.checks.bot_has_permissions(manage_expressions=True)
 async def add_emoji(interaction: discord.Interaction, message: discord.Message):
     attachments = message.attachments
     if attachments and attachments[0].filename.endswith(('.jpg', '.png', '.gif')):
