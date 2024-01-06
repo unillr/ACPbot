@@ -30,7 +30,7 @@ async def generate_emoji(interaction: discord.Interaction,
     query = {
         'align': 'center',
         'back_color': '00000000',
-        'color': '{:02x}{:02x}{:02x}ff'.format(red, blue, green),
+        'color': '{:02x}{:02x}{:02x}ff'.format(red, green, blue),
         'font': font.value,
         'locale': 'ja',
         'public_fg': 'false',
