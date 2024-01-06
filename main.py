@@ -3,6 +3,7 @@ import os
 
 from aiohttp import web
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 
@@ -23,6 +24,16 @@ bot = MyBot('/', intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
+
+
+@bot.tree.error
+async def on_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message('権限を持っていないよ!', ephemeral=True)
+    elif isinstance(error, app_commands.BotMissingPermissions):
+        await interaction.response.send_message('botに権限が与えられていないよ!', ephemeral=True)
+    elif isinstance(error, app_commands.CommandOnCooldown):
+        await interaction.response.send_message('クールダウン中だよ!', ephemeral=True)
 
 
 async def handler(request: web.BaseRequest):

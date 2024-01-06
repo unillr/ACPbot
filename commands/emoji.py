@@ -50,11 +50,5 @@ async def generate_emoji(interaction: discord.Interaction,
             await interaction.response.send_message(file=discord.File(data, f'{text}.png'))
 
 
-@generate_emoji.error
-async def on_emoji_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
-    if isinstance(error, app_commands.CommandOnCooldown):
-        await interaction.response.send_message('クールダウン中だよ!', ephemeral=True)
-
-
 async def setup(bot: commands.Bot):
     bot.tree.add_command(generate_emoji)
