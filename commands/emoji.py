@@ -18,7 +18,10 @@ class Fonts(enum.Enum):
 
 
 @app_commands.command(name='emoji', description='絵文字を生成するよ!')
-@app_commands.checks.cooldown(1, 15, key=None)
+@app_commands.describe(text='絵文字にするテキスト',
+                       red='赤の明度(0~255)', green='緑の明度(0~255)', blue='青の明度(0~255)',
+                       font='テキストのフォント')
+@app_commands.checks.cooldown(1, 10, key=None)
 async def generate_emoji(interaction: discord.Interaction,
                          text: str,
                          red: int, green: int, blue: int,
