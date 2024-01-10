@@ -5,7 +5,6 @@ import aiohttp
 import discord
 from discord import app_commands
 from discord.ext import commands
-from yarl import URL
 
 
 class Fonts(enum.Enum):
@@ -29,8 +28,7 @@ async def generate_emoji(interaction: discord.Interaction,
     if min(red, green, blue) < 0 or max(red, green, blue) > 255:
         await interaction.response.send_message('色は0~255の範囲で指定してね!', ephemeral=True)
         return
-    url = URL('https://emoji-gen.ninja/emoji')
-    query = {
+    params = {
         'align': 'center',
         'back_color': '00000000',
         'color': '{:02x}{:02x}{:02x}ff'.format(red, green, blue),
@@ -41,10 +39,9 @@ async def generate_emoji(interaction: discord.Interaction,
         'stretch': 'true',
         'text': text.replace('\\n', '\n')
              }
-    url_with_query = url.with_query(query)
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(url_with_query) as resp:
+        async with session.get('https://emoji-gen.ninja/emoji', params=params) as resp:
             if resp.status != 200:
                 await interaction.response.send_message(f'生成に失敗したよ!: {resp.status}',
                                                         ephemeral=True)
