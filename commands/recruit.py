@@ -81,7 +81,8 @@ async def recruit(interaction: discord.Interaction,
     recruiter = interaction.user.mention
     await interaction.response.send_message(content=content,
                                             embed=RecruitBoard(number, [recruiter]),
-                                            view=RecruitView(number, recruiter))
+                                            view=RecruitView(number, recruiter),
+                                            allowed_mentions=discord.AllowedMentions.all())
 
 
 async def setup(bot: commands.Bot):
