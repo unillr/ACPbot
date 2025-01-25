@@ -42,7 +42,8 @@ class RecruitView(discord.ui.View):
         else:
             self.standbys.append(candidate)
 
-        board = RecruitBoard(self.number, self.participants, self.standbys, self.canceled)
+        board = RecruitBoard(self.number, self.participants,
+                             self.standbys, self.canceled)
         await interaction.response.edit_message(embed=board)
 
     @discord.ui.button(style=discord.ButtonStyle.secondary, label='キャンセル')
@@ -60,7 +61,8 @@ class RecruitView(discord.ui.View):
             return
         self.canceled.append(canceler)
 
-        board = RecruitBoard(self.number, self.participants, self.standbys, self.canceled)
+        board = RecruitBoard(self.number, self.participants,
+                             self.standbys, self.canceled)
         await interaction.response.edit_message(embed=board)
 
     @discord.ui.button(style=discord.ButtonStyle.danger, label='招集')
@@ -68,7 +70,16 @@ class RecruitView(discord.ui.View):
         if interaction.user.mention not in self.participants:
             await interaction.response.send_message('参加者以外は招集できないよ!', ephemeral=True)
             return
-        await interaction.response.send_message(' '.join(self.participants))
+        if interaction.user.voice is not None and (vc := interaction.user.voice.channel) is not None:
+            notify_member = self.participants.copy()
+            for member in vc.members:
+                if member.mention in self.participants:
+                    notify_member.remove(member.mention)
+            if notify_member:
+                await vc.send(' '.join(notify_member))
+            await interaction.response.send_message('通知を送ったよ！', ephemeral=True)
+        else:
+            await interaction.response.send_message(' '.join(self.participants))
 
 
 @app_commands.command(name='bo', description='一緒に遊ぶ仲間を募集できるよ!')
@@ -80,8 +91,10 @@ async def recruit(interaction: discord.Interaction,
         content += f' @{number}'
     recruiter = interaction.user.mention
     await interaction.response.send_message(content=content,
-                                            embed=RecruitBoard(number, [recruiter]),
-                                            view=RecruitView(number, recruiter),
+                                            embed=RecruitBoard(
+                                                number, [recruiter]),
+                                            view=RecruitView(
+                                                number, recruiter),
                                             allowed_mentions=discord.AllowedMentions.all())
 
 
