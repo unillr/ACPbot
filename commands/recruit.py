@@ -27,6 +27,7 @@ class RecruitView(discord.ui.View):
         self.participants = [recruiter]
         self.standbys = []
         self.canceled = []
+        self.watchers = []
 
     @discord.ui.button(style=discord.ButtonStyle.primary, label='参加')
     async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -39,12 +40,24 @@ class RecruitView(discord.ui.View):
 
         if self.number is None or self.number > len(self.participants) - 1:
             self.participants.append(candidate)
+            for watcher in self.watchers:
+                if watcher != interaction.user:
+                    await watcher.send(f"あなたがWatchした募集に{candidate}が参加したよ！")
         else:
             self.standbys.append(candidate)
 
         board = RecruitBoard(self.number, self.participants,
                              self.standbys, self.canceled)
         await interaction.response.edit_message(embed=board)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, label="Watch")
+    async def watch(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user not in self.watchers:
+            self.watchers.append(interaction.user)
+            await interaction.response.send_message('誰かが参加するとDMで通知するよ！', ephemeral=True)
+        else:
+            self.watchers.remove(interaction.user)
+            await interaction.response.send_message('Watchを取り消したよ！', ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.secondary, label='キャンセル')
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
