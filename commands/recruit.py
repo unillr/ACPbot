@@ -32,7 +32,7 @@ class NotificationModal(discord.ui.Modal, title='お知らせ'):
 
     async def on_submit(self, interaction: discord.Interaction):
         self.members_to_notify.remove(interaction.user.mention)
-        await interaction.response.send_message(' '.join(self.members_to_notify) + self.content.component.value)
+        await interaction.response.send_message(' '.join(self.members_to_notify) + '\n' + self.content.component.value)
 
 
 class RecruitView(discord.ui.View):
@@ -47,6 +47,7 @@ class RecruitView(discord.ui.View):
     @discord.ui.button(style=discord.ButtonStyle.primary, label='参加')
     async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
         candidate = interaction.user.mention
+        notify_watchers = False
         if candidate in self.participants or candidate in self.standbys:
             await interaction.response.send_message('すでに参加しているよ!', ephemeral=True)
             return
@@ -55,15 +56,18 @@ class RecruitView(discord.ui.View):
 
         if self.number is None or self.number > len(self.participants) - 1:
             self.participants.append(candidate)
-            for watcher in self.watchers:
-                if watcher != interaction.user:
-                    await watcher.send(f"あなたがWatchした募集に{candidate}が参加したよ!")
+            notify_watchers = True
         else:
             self.standbys.append(candidate)
 
         board = RecruitBoard(self.number, self.participants,
                              self.standbys, self.canceled)
         await interaction.response.edit_message(embed=board)
+
+        if notify_watchers:
+            for watcher in self.watchers:
+                if watcher != interaction.user:
+                    await watcher.send(f"あなたがWatchした募集に{candidate}が参加したよ!")
 
     @discord.ui.button(style=discord.ButtonStyle.secondary, label="Watch")
     async def watch(self, interaction: discord.Interaction, button: discord.ui.Button):
