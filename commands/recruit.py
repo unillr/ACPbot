@@ -20,16 +20,19 @@ class RecruitBoard(discord.Embed):
             self.add_field(name=n, value='\n'.join(v) if v else 'なし')
 
 
-class NotificationModal(discord.ui.Modal, title='お知らせの内容を入力'):
+class NotificationModal(discord.ui.Modal, title='お知らせ'):
     def __init__(self, members: list[str]):
         super().__init__()
         self.members_to_notify = members.copy()
 
-    content = discord.ui.TextInput(required=False)
+    content = discord.ui.Label(
+        text='お知らせの内容を入力',
+        component=discord.ui.TextInput(required=False)
+    )
 
     async def on_submit(self, interaction: discord.Interaction):
         self.members_to_notify.remove(interaction.user.mention)
-        await interaction.response.send_message(' '.join(self.members_to_notify) + self.content.value)
+        await interaction.response.send_message(' '.join(self.members_to_notify) + self.content.component.value)
 
 
 class RecruitView(discord.ui.View):
@@ -97,6 +100,7 @@ class RecruitView(discord.ui.View):
             return
         if len(self.participants) < 2:
             await interaction.response.send_message('あなた以外に参加者がいないよ!', ephemeral=True)
+            return
         await interaction.response.send_modal(NotificationModal(self.participants))
 
 
