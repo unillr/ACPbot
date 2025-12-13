@@ -20,6 +20,18 @@ class RecruitBoard(discord.Embed):
             self.add_field(name=n, value='\n'.join(v) if v else 'なし')
 
 
+class NotificationModal(discord.ui.Modal, title='お知らせの内容を入力'):
+    def __init__(self, members: list[str]):
+        super().__init__()
+        self.members_to_notify = members.copy()
+
+    content = discord.ui.TextInput(required=False)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        self.members_to_notify.remove(interaction.user.mention)
+        await interaction.response.send_message(' '.join(self.members_to_notify) + self.content.value)
+
+
 class RecruitView(discord.ui.View):
     def __init__(self, number: int | None, recruiter: str):
         super().__init__(timeout=86400)
@@ -42,7 +54,7 @@ class RecruitView(discord.ui.View):
             self.participants.append(candidate)
             for watcher in self.watchers:
                 if watcher != interaction.user:
-                    await watcher.send(f"あなたがWatchした募集に{candidate}が参加したよ！")
+                    await watcher.send(f"あなたがWatchした募集に{candidate}が参加したよ!")
         else:
             self.standbys.append(candidate)
 
@@ -54,10 +66,10 @@ class RecruitView(discord.ui.View):
     async def watch(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user not in self.watchers:
             self.watchers.append(interaction.user)
-            await interaction.response.send_message('誰かが参加するとDMで通知するよ！', ephemeral=True)
+            await interaction.response.send_message('誰かが参加するとDMで通知するよ!', ephemeral=True)
         else:
             self.watchers.remove(interaction.user)
-            await interaction.response.send_message('Watchを取り消したよ！', ephemeral=True)
+            await interaction.response.send_message('Watchを取り消したよ!', ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.secondary, label='キャンセル')
     async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -78,21 +90,14 @@ class RecruitView(discord.ui.View):
                              self.standbys, self.canceled)
         await interaction.response.edit_message(embed=board)
 
-    @discord.ui.button(style=discord.ButtonStyle.danger, label='招集')
-    async def convene(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(style=discord.ButtonStyle.danger, label='お知らせ')
+    async def notify(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.mention not in self.participants:
-            await interaction.response.send_message('参加者以外は招集できないよ!', ephemeral=True)
+            await interaction.response.send_message('参加者以外はお知らせできないよ!', ephemeral=True)
             return
-        if interaction.user.voice is not None and (vc := interaction.user.voice.channel) is not None:
-            notify_member = self.participants.copy()
-            for member in vc.members:
-                if member.mention in self.participants:
-                    notify_member.remove(member.mention)
-            if notify_member:
-                await vc.send(' '.join(notify_member))
-            await interaction.response.send_message('通知を送ったよ！', ephemeral=True)
-        else:
-            await interaction.response.send_message(' '.join(self.participants))
+        if len(self.participants) < 2:
+            await interaction.response.send_message('あなた以外に参加者がいないよ!', ephemeral=True)
+        await interaction.response.send_modal(NotificationModal(self.participants))
 
 
 @app_commands.command(name='bo', description='一緒に遊ぶ仲間を募集できるよ!')
